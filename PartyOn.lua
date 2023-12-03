@@ -31,31 +31,37 @@ local BATTLE_PC_2 = CHAR_MAGUS
 local BATTLE_PC_3 = CHAR_MARLE
 
 -- Default value; supposes that you are starting this script outside of battle.
-local in_battle = false
+local in_battle_last_frame = false
 
 function main()
 
     -- If we weren't in battle on the previous frame, but we are now...
-	if ((in_battle == false) and ((mainmemory.readbyte(BATTLE_FLAG) % 2) ~= 0)) then
+	if (in_battle_last_frame == false) and mainmemory.readbyte(BATTLE_FLAG) % 2 ~= 0 then
 		
         -- Set the flag to show we are now in battle.
-        in_battle = true
+        in_battle_last_frame = true
         -- Force our battle team into the party.
         memory.writebyte(PC_1_LOCATION, BATTLE_PC_1)
         memory.writebyte(PC_2_LOCATION, BATTLE_PC_2)
         memory.writebyte(PC_3_LOCATION, BATTLE_PC_3)
 
     -- If we WERE in battle on the previous frame, but we are out of battle now...
-    elseif ((in_battle == true) and ((mainmemory.readbyte(BATTLE_FLAG) % 2) == 0)) then
+    elseif (in_battle_last_frame == true) and mainmemory.readbyte(BATTLE_FLAG) % 2 == 0 then
 
         -- Set the flag to show we are no longer in battle.
-        in_battle = false
+        in_battle_last_frame = false
         -- Force the original team into the party.
         memory.writebyte(PC_1_LOCATION, FIELD_PC_1)
         memory.writebyte(PC_2_LOCATION, FIELD_PC_2)
         memory.writebyte(PC_3_LOCATION, FIELD_PC_3)
 
+    -- If battle status hasn't just changed, track the current party state!
+    elseif mainmemory.readbyte(BATTLE_FLAG) % 2 == 0 then
+        FIELD_PC_1 = memory.readbyte(PC_1_LOCATION)
+        FIELD_PC_2 = memory.readbyte(PC_2_LOCATION)
+        FIELD_PC_3 = memory.readbyte(PC_3_LOCATION)
 	end
+
 end
 
 -- Actual execution starts here.
